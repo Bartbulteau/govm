@@ -1,3 +1,7 @@
+jmp start
+
+
+start:
 mov ax 1
 mov bx 72
 printr bx
