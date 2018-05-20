@@ -57,7 +57,7 @@ func SpeSplit(s string) []string {
 	return w
 }
 
-func run(p []string) {
+func run(program []string) {
 
 	running := true
 	regs := map[string]int{
@@ -65,9 +65,15 @@ func run(p []string) {
 		"bx": 0,
 		"cx": 0,
 		"dx": 0,
+		"jx": 0,
 	}
 
 	pc := 0
+
+	p, labels := Labelprocess(program)
+	// for key, val := range labels {
+	// 	println("key:", key, "\tval:", val)
+	// }
 
 	for running {
 		switch p[pc] {
@@ -96,6 +102,19 @@ func run(p []string) {
 				pc++
 				fmt.Printf("%c", regs[p[pc]])
 			}
+		// case "print":
+		// 	if regs["ax"] == 0 {
+		// 		pc++
+		// 		fmt.Printf("%d", p[pc][1])
+		// 	} else if regs["ax"] == 1 {
+		// 		pc++
+		// 		val, err := strconv.Atoi(p[pc])
+		// 		println(val)
+		// 		if err != nil {
+		// 			fmt.Printf("%c", val)
+		// 		}
+
+		// 	}
 
 		// Math
 		case "add":
@@ -143,10 +162,62 @@ func run(p []string) {
 				pc++
 			}
 
+		// Logic
+		case "jmp":
+			pc++
+			adress, err := strconv.Atoi(p[pc])
+			if err != nil {
+				println("Error trying to jump to invalid adress :", p[pc])
+				running = false
+			} else {
+				pc = adress
+			}
+		case "jz":
+			pc++
+			adress, err := strconv.Atoi(p[pc])
+			if err != nil {
+				println("Error trying to jump to invalid adress :", p[pc])
+			} else {
+				if regs["jx"] == 0 {
+					pc = adress
+				}
+			}
+		case "jnz":
+			pc++
+			adress, err := strconv.Atoi(p[pc])
+			if err != nil {
+				println("Error trying to jump to invalid adress :", p[pc])
+			} else {
+				if regs["jx"] != 0 {
+					pc = adress
+				}
+			}
+
 		default:
-			println("Error invalid instruction : \"", p[pc], "\" [halt]")
-			running = false
+			if val, ok := labels[p[pc][:len(p[pc])-1]]; ok {
+				val++
+				val--
+			} else {
+				println("Error invalid instruction : \"", p[pc], "\" [halt]")
+				running = false
+			}
+
 		}
 		pc += 1
 	}
+}
+
+func Labelprocess(p []string) ([]string, map[string]int) {
+	labels := make(map[string]int)
+	for i := 0; i < len(p); i++ {
+		if p[i][len(p[i])-1] == ':' {
+			labels[p[i][:len(p[i])-1]] = i
+		}
+	}
+	for j := 0; j < len(p); j++ {
+		if val, ok := labels[p[j]]; ok {
+			p[j] = strconv.Itoa(val)
+		}
+	}
+	return p, labels
 }
