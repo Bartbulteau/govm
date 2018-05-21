@@ -2,11 +2,11 @@
 
 ### Amber
 
-*Amber* is a programming language that i am trying to create for educational purpose.
+**Amber** is a programming language that i am trying to create for educational purpose.
 
 ### GoVM
 
-*GoVM* is the VM that interprets the "Assembly" produced by the compiler, it's fully written in Golang.
+**GoVM** is the VM that interprets the "Assembly" produced by the compiler, it's fully written in Golang.
 
 ### Installation
 
