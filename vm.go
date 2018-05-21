@@ -198,7 +198,6 @@ func run(program []string) {
 				val++
 				val--
 			} else if p[pc] == "#!./govm" {
-
 			} else {
 				println("Error invalid instruction : \"", p[pc], "\" [halt]")
 				running = false
