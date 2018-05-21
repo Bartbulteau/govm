@@ -3,3 +3,4 @@ vm
 govm
 .DS_Store
 exe
+src/.DS_Store
