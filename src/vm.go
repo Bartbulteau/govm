@@ -197,7 +197,7 @@ func run(program []string) {
 			if val, ok := labels[p[pc][:len(p[pc])-1]]; ok {
 				val++
 				val--
-			} else if p[pc] == "#!./govm" {
+			} else if p[pc] == "#!/usr/local/bin/govm" {
 			} else {
 				println("Error invalid instruction : \"", p[pc], "\" [halt]")
 				running = false

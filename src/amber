@@ -88,7 +88,7 @@ def lex(data):
 
 def parse(toks):
     i = 0
-    code = "#!./govm\n"
+    code = "#!/usr/local/bin/govm\n"
     nsp = evaluator.NumericStringParser()
     while i < len(toks):
 
