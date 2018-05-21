@@ -3,6 +3,7 @@
 from os import system
 from sys import argv
 from re import match
+from _amber_modules import evaluator
 
 def lex(data):
     i = 0
@@ -24,6 +25,21 @@ def lex(data):
             state = 2
             num += tok
             tok = ""
+        
+        # EXPRESSIONS
+        elif tok == "(" and state == 0:
+            tokens.append("[EXP]")
+            tok = ""
+        elif tok == ")" and state == 0:
+            tokens.append("[END EXP]")
+            tok = ""
+            
+        elif tok == "+" or tok == "-" or tok == "*" or tok == "/":
+            if state == 0:
+                tokens.append("[OP]")
+                tokens.append(tok)
+                tok = ""
+
 
         # STRINGS
         elif tok == "\"":
@@ -42,16 +58,25 @@ def lex(data):
             string += tok
             tok = ""
         elif state == 2:
-            if tok == " " or tok == "\n" or i == len(data) - 1:
-                state = 0
-                tok = ""
-                tokens.append("[NUM]")
-                tokens.append(num)
-                num = ""
+            if tok == " " or tok == "\n" or i == len(data) - 1 or tok == ")":
+                if tok == ")":
+                    state = 0
+                    tok = ""
+                    tokens.append("[NUM]")
+                    tokens.append(num)
+                    num = ""
+                    tokens.append("[END EXP]")
+                else:
+                    state = 0
+                    tok = ""
+                    tokens.append("[NUM]")
+                    tokens.append(num)
+                    num = ""
             else:
                 num += tok
                 tok = ""
         
+        # IGNORES
         elif tok == " " and state == 0:
             tok = ""
         elif tok == "\n" and state == 0:
@@ -64,20 +89,40 @@ def lex(data):
 def parse(toks):
     i = 0
     code = "#!./govm\n"
+    nsp = evaluator.NumericStringParser()
     while i < len(toks):
 
         if toks[i] == "[PRINT]":
             i += 1
-            if toks[i] == "[STRING]":
+            if toks[i] == "[EXP]":
                 i += 1
-                code += "mov ax 1 "
-                for char in toks[i]:
-                    code = code + "mov bx " + str(ord(char)) + " printr bx "
-                code = code + "mov bx 10 printr bx "
-            if toks[i] == "[NUM]":
-                i += 1
-                code += "mov ax 0 "
-                code = code + "mov bx " + toks[i] + " printr bx mov ax 1 mov bx 10 printr bx "
+                if toks[i] == "[STRING]":
+                    i += 1
+                    code += "mov ax 1 "
+                    for char in toks[i]:
+                        code = code + "mov bx " + str(ord(char)) + " printr bx "
+                elif toks[i] == "[NUM]":
+                    exp = ""
+                    i += 1
+                    exp = toks[i]
+                    while toks[i] != "[END EXP]":
+                        i += 1
+                        if toks[i] == "[OP]":
+                            i += 1
+                            exp += toks[i]
+                        elif toks[i] == "[NUM]":
+                            i += 1
+                            exp += toks[i]
+                    print "Expression : " + exp
+                    try:
+                        result = nsp.eval(exp)
+                        code = code + "mov ax 0 mov bx " + str(int(result)) + " printr bx "
+                    except: 
+                        print "Error while evaluating : " + exp
+            code = code + "mov ax 1 mov bx 10 printr bx "
+            
+            
+                    
                     
 
         i+=1
@@ -96,6 +141,7 @@ def run():
                 file_handler = open(argv[1], "r")
             except:
                 print "Error invalid file name : \"" + argv[1] + "\""
+                exit()
             
             
             data = file_handler.read()
@@ -111,6 +157,7 @@ def run():
                     system("chmod +x a.out")
             except:
                 print "Error : couldn't write executable file named \"" + argv[2] + "\""
+
 
 
 run()
