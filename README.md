@@ -24,5 +24,12 @@ amber test.amb exe
 
 To run the exe file, use :
 ```bash
+./exe
+```
+or
+```bash
 govm exe
 ```
+
+
+*Copyright (c) 2018 Barthélémy Bulteau*
