@@ -11,15 +11,48 @@ echo "
 "
 echo ""
 
-echo "Building amber and govm..."
+echo "Building GoVM..."
 go build src/vm.go
+if [ $? -eq 0 ]; then
+    echo "govm build succeeded"
+else
+    echo "Fail : unable to build govm
+Do you have Go installed ?
+Check by typing : go version"
+    exit 0
+fi
+
 echo ""
 echo "Sudo password may be needed to install amber and govm in your bin directory..."
 mv vm govm
+if [ $? -eq 0 ]; then
+    echo "Success : renaming files"
+else
+    echo "Fail : can't rename vm to govm"
+    exit 0
+fi
 sudo cp govm /usr/local/bin/govm
+if [ $? -eq 0 ]; then
+    echo "Success : copying govm to /usr/local/bin"
+else
+    echo "Fail : unable to copy govm to /usr/local/bin"
+    exit 0
+fi
 sudo cp src/amber /usr/local/bin/amber
+if [ $? -eq 0 ]; then
+    echo "Success : copying amber to /usr/local/bin"
+else
+    echo "Fail : unable to copy amber to /usr/local/bin"
+    exit 0
+fi
 sudo cp -r src/_amber_modules /usr/local/bin/_amber_modules
-echo "Done."
+if [ $? -eq 0 ]; then
+    echo "Success : copying _amber_modules to /usr/local/bin"
+else
+    echo "Fail : unable to copy _amber_modules to /usr/local/bin"
+    exit 0
+fi
+echo "Installation completed"
 echo ""
 echo "Usage :"
 echo "  amber [input] [executable name]"
