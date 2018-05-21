@@ -1,0 +1,2 @@
+#!/usr/local/bin/govm
+int 0 0 istore 0 100 mov ax 0 iload bx 0 printr bx mov ax 1 mov bx 10 printr bx  halt 

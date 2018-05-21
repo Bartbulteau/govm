@@ -12,11 +12,35 @@ def lex(data):
     tokens = []
     string = ""
     num = ""
+    var = ""
+    ram = {}
     while i < len(data):
         tok += data[i]
         # I/O
         if tok.lower() == "print":
             tokens.append("[PRINT]")
+            tok = ""
+        
+        # VARIABLES
+
+        elif tok.lower() == "var" and state == 0:
+            tokens.append("[VAR DEF]")
+            tok = ""
+            state = 3
+        elif tok in ram and state == 0:
+            tokens.append("[VAR]")
+            tokens.append(tok)
+            tok = ""
+
+        
+        # TYPES
+        elif tok.lower() == "int" and state == 0:
+            tokens.append("[TYPE]")
+            tokens.append(tok)
+            tok = ""
+        elif tok.lower() == "string" and state == 0:
+            tokens.append("[TYPE]")
+            tokens.append(tok)
             tok = ""
         
 
@@ -39,6 +63,10 @@ def lex(data):
                 tokens.append("[OP]")
                 tokens.append(tok)
                 tok = ""
+        
+        elif tok == "=" and state == 0:
+            tokens.append("[EQUALS]")
+            tok = ""
 
 
         # STRINGS
@@ -57,6 +85,7 @@ def lex(data):
         elif state == 1:
             string += tok
             tok = ""
+
         elif state == 2:
             if tok == " " or tok == "\n" or i == len(data) - 1 or tok == ")":
                 if tok == ")":
@@ -75,6 +104,20 @@ def lex(data):
             else:
                 num += tok
                 tok = ""
+            
+        elif state == 3:
+            if tok == " " or tok == "\n" or i == len(data) - 1:
+                if var != "":
+                    state = 0
+                    tok = ""
+                    tokens.append(var)
+                    ram[var] = 0
+                    var = ""
+                else:
+                    tok = ""
+            else:
+                var += tok
+                tok = ""
         
         # IGNORES
         elif tok == " " and state == 0:
@@ -90,6 +133,9 @@ def parse(toks):
     i = 0
     code = "#!/usr/local/bin/govm\n"
     nsp = evaluator.NumericStringParser()
+    ram = {}
+    adresser = 0
+    types = {}
     while i < len(toks):
 
         if toks[i] == "[PRINT]":
@@ -98,9 +144,16 @@ def parse(toks):
                 i += 1
                 if toks[i] == "[STRING]":
                     i += 1
-                    code += "mov ax 1 "
-                    for char in toks[i]:
-                        code = code + "mov bx " + str(ord(char)) + " printr bx "
+                    code = code + "push 0 "
+                    for char in toks[i][::-1]:
+                        code = code + "push " + str(ord(char)) + " "
+                    code = code + " prints "
+                
+                elif toks[i] == "[VAR]":
+                    i += 1
+                    if types[toks[i]] == "int":
+                        code = code + "mov ax 0 iload bx " + str(ram[toks[i]]) + " printr bx "
+
                 elif toks[i] == "[NUM]":
                     exp = ""
                     i += 1
@@ -120,6 +173,62 @@ def parse(toks):
                     except: 
                         print "Error while evaluating : " + exp
             code = code + "mov ax 1 mov bx 10 printr bx "
+        
+        elif toks[i] == "[VAR DEF]":
+            i += 1
+            varname = toks[i]
+            ram[toks[i]] = adresser
+            i += 1
+            if toks[i] == "[TYPE]":
+                i += 1
+                types[varname] = toks[i]
+                if toks[i] == "int":
+                    code = code + "int " + str(ram[varname]) + " 0 "
+            else:
+                print "Error : variable " + toks[i - 1] + " not typed when declared"
+                exit(1)
+        
+        elif toks[i] == "[VAR]":
+            i += 1
+            varname = toks[i]
+            i += 1
+            if toks[i] == "[EQUALS]":
+                i += 1
+                if toks[i] == "[NUM]":
+                    if types[varname] != "int":
+                        print "Error : you can't assign int values to " + varname
+                        exit(1)
+                    else:
+                        i += 1
+                        code = code + "istore " + str(ram[varname]) + " " + toks[i] + " "
+                elif toks[i] == "[STRING]":
+                    if types[varname] != "string":
+                        print "Error : you can't assign string values to " + varname
+                        exit(1)
+                    else:
+                        i += 1
+                        code = code + "sstore " + str(ram[varname]) + " " + toks[i] + " "
+                elif toks[i] == "[EXP]":
+                    exp = ""
+                    while toks[i] != "[END EXP]":
+                        i += 1
+                        if toks[i] == "[OP]":
+                            i += 1
+                            exp += toks[i]
+                        elif toks[i] == "[NUM]":
+                            i += 1
+                            exp += toks[i]
+                    try:
+                        result = nsp.eval(exp)
+                        code = code + "istore " + str(ram[varname]) + " " + str(int(result)) + " "
+                    except: 
+                        print "Error while evaluating : " + exp
+                        exit(1)
+
+
+
+            
+
             
             
                     

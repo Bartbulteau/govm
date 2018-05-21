@@ -12,7 +12,7 @@ echo "
 echo ""
 
 echo "Building GoVM..."
-go build src/vm.go
+go build src/main.go
 if [ $? -eq 0 ]; then
     echo "govm build succeeded"
 else
@@ -24,7 +24,7 @@ fi
 
 echo ""
 echo "Sudo password may be needed to install amber and govm in your bin directory..."
-mv vm govm
+mv main govm
 if [ $? -eq 0 ]; then
     echo "Success : renaming files"
 else
@@ -51,6 +51,13 @@ if [ $? -eq 0 ]; then
 else
     echo "Fail : unable to copy _amber_modules to /usr/local/bin"
     exit 0
+fi
+rm govm
+if [ $? -eq 0 ]; then
+    echo "Success : cleaning directory"
+else
+    echo "Fail : unable to remove govm bin file from this directory"
+    echo "This won't stop installation"
 fi
 echo "Installation completed"
 echo ""
