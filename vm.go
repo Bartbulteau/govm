@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var version string = "0.0.1 alpha"
+var version string = "0.0.2 alpha"
 
 func main() {
 	// fmt.Println("GoVM 0.0.1")

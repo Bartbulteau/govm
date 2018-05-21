@@ -2,6 +2,7 @@
 
 from os import system
 from sys import argv
+from re import match
 
 def lex(data):
     i = 0
@@ -9,15 +10,22 @@ def lex(data):
     state = 0
     tokens = []
     string = ""
+    num = ""
     while i < len(data):
         tok += data[i]
-        if tok == " " and state == 0:
-            tok = ""
-        elif tok == "\n":
-            tok = ""
-        elif tok.lower() == "print":
+        # I/O
+        if tok.lower() == "print":
             tokens.append("[PRINT]")
             tok = ""
+        
+
+        # NUMBERS
+        elif match("([0-9]+)", tok) != None and state == 0:
+            state = 2
+            num += tok
+            tok = ""
+
+        # STRINGS
         elif tok == "\"":
             if state == 0:
                 state = 1
@@ -28,8 +36,25 @@ def lex(data):
                 tokens.append(string)
                 string = ""
                 tok = ""
+        
+        # STATES
         elif state == 1:
             string += tok
+            tok = ""
+        elif state == 2:
+            if tok == " " or tok == "\n" or i == len(data) - 1:
+                state = 0
+                tok = ""
+                tokens.append("[NUM]")
+                tokens.append(num)
+                num = ""
+            else:
+                num += tok
+                tok = ""
+        
+        elif tok == " " and state == 0:
+            tok = ""
+        elif tok == "\n" and state == 0:
             tok = ""
 
         i+=1
@@ -49,6 +74,10 @@ def parse(toks):
                 for char in toks[i]:
                     code = code + "mov bx " + str(ord(char)) + " printr bx "
                 code = code + "mov bx 10 printr bx "
+            if toks[i] == "[NUM]":
+                i += 1
+                code += "mov ax 0 "
+                code = code + "mov bx " + toks[i] + " printr bx mov ax 1 mov bx 10 printr bx "
                     
 
         i+=1
@@ -57,8 +86,8 @@ def parse(toks):
 
 
 def run():
-    if len(argv) < 3:
-        print "Error, missing input or output file name."
+    if len(argv) < 2:
+        print "Error, missing input file name."
     else:
         if argv[1] == "help":
             print "Use : amber [source] [target]"
@@ -71,10 +100,15 @@ def run():
             
             data = file_handler.read()
             toks = lex(data)
+            print toks
             code = parse(toks)
             try:
-                open(argv[2], "w").write(code)
-                system("chmod +x " + argv[2])
+                if len(argv) > 2:
+                    open(argv[2], "w").write(code)
+                    system("chmod +x " + argv[2])
+                else:
+                    open("a.out", "w").write(code)
+                    system("chmod +x a.out")
             except:
                 print "Error : couldn't write executable file named \"" + argv[2] + "\""
 

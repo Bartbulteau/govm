@@ -1,0 +1,4 @@
+print "Hello World !"
+print "This is a number :"
+print 9999
+print "This code has been compiled by amber and is running on the GoVM"
